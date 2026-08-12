@@ -5,21 +5,37 @@ keywords: [HTTP接口,API接口,设备管理,产品管理,属性管理,接口列
 description: '详细说明SagooIOT平台的HTTP接口，包括设备管理、产品管理和属性管理等完整的RESTful API接口文档。'
 ---
 
-# Http方式
+# HTTP 方式
 
+OpenAPI 管理面 / 控制面对接说明。整体选型与边界见 [北向接口概述](./introduce.md)。
 
 ## 认证鉴权
 
-1. 登录`sagoo` 系统，进入[应用管理](../../../docs/config/application)创建对应的应用
-2. 参照[AK/SK认证过程](../authority/start.md) 针对请求进行鉴权
+1. 登录系统，进入 [应用管理](../../../docs/config/application) 创建并**启用**应用  
+2. 按 [AK/SK 认证说明](../authority/start.md) 携带 `appId`、`time`、`sign`（以及验签用的 AccessKey）  
 
-## api接口列表
+## 推荐路径与 `/north` 兼容
 
-***注意事项:其中`domain`根据实际配置来定，因为有时会为了前端后端使用统一域名对url进行重写，比如加上`/base-api`这个时候对应的也要加上前缀，比如原本的`https://{domain}/base-api/openapi`就变成了`https://{domain}/base-api/base-api/openapi`***
+新对接**推荐**优先使用业务语义清晰的分组，例如：
 
-1. yourdomain.com: 为api服务的域名
-2. productId: 产品id
-3. deviceId: 设备id
+| 能力 | 推荐路径（示例） |
+|------|------------------|
+| 设备详情 / 分页 | `/openapi/v1/product/device/detail`、`/page_list` |
+| 属性设置 | `/openapi/v1/product/property/set` |
+| 服务调用 | `/openapi/v1/product/function/do`、`/batchDo` |
+| 最新属性 | `/openapi/v1/product/device/get_latest_property` |
+
+下方清单以历史兼容入口 **`/openapi/v1/north/...`** 为主做明细说明，能力与 `/product` 等分组有重叠，可对照使用。完整清单以运行环境 Swagger /「系统监控 → API 文档」为准。
+
+:::caution 网关前缀
+`domain` 与是否带 `/base-api` 以前置网关为准。若前后端统一域名已做路径重写，请避免把前缀叠加写错（例如把已含 `/base-api` 的地址再拼一次）。
+:::
+
+## API 接口列表（`/north` 兼容）
+
+1. yourdomain.com：API 服务域名  
+2. productId：产品 id  
+3. deviceKey：设备标识  
 
 | api名称  | url                                                                           | method | api描述    |
 |--------|-------------------------------------------------------------------------------|--------|----------|

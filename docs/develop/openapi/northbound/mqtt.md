@@ -1,305 +1,218 @@
 ---
 sidebar_position: 3
 title: 'MQTT接口说明'
-keywords: [MQTT接口,消息订阅,消息发布,MQTT配置,连接认证,消息格式,实时通信,MQTT协议,物联网通信,消息主题]
-description: '详细说明SagooIOT平台的MQTT接口，包括消息订阅、发布机制和配置说明等MQTT协议通信指南。'
+keywords: [MQTT北向,消息订阅,Topic,属性上报,共享订阅,messagingEnable,实时通信]
+description: '说明 SagooIoT MQTT 北向：开关配置、Topic 清单、统一信封、常见报文样例、订阅建议与共享订阅。'
 ---
 
-# MQTT方式
+# MQTT 方式
 
+实时设备数据与状态变更的标准北向数据面。选型与边界见 [北向接口概述](./introduce.md)。
 
-## 开启mqtt北向消息开关
+---
 
-修改系统配置文件 `manifest/config/config.yaml` 在原有的mqtt配置添加`messagingEnable`配置项,配置如下
+## 开启北向消息
+
+在 `manifest/config/config.yaml` 的 mqtt 段启用：
 
 ```yaml
 mqtt:
   addr: 127.0.0.1:1885
   clientId: exampleClientId
   deviceLiveDuration: 30
-  messagingEnable: true
+  messagingEnable: true          # 必须为 true 才会发北向 Topic
+  sharedSubscribe: false         # 多实例时平台侧共享订阅开关（可选）
   auth:
     userName: sagoo_admin
     userPassWorld: sagoo_admin
 ```
 
-## mqtt连接信息
+Broker 地址、账号以实际部署为准。业务订阅端使用独立 MQTT Client，建议配置持久会话与所需 QoS。
 
-1. `mqtt` 相关的连接信息在系统配置文件 `manifest/config/config.yaml` 中查看
-2. 连接使用的`mqtt`的`clientId`
-    1. 登录`sagoo` 系统，进入`系统配置`-> `基础配置` 查找下面两个的值，分别对应`SK`和`AK`
-       - `开放接口AK`: `Ak`
-       - `开放接口SK`: `SK`
-2. 连接的`clientId`为`Ak`和`SK`的`base64`编码,即为`base64(Ak:SK)`,使用golang代码示例如下
+### 连接信息提示
+
+1. 连接参数见上述配置文件（或运维提供的 Broker 信息）  
+2. 部分部署场景下客户端标识可与开放接口凭证相关；若环境要求 `clientId = base64(AK:SK)`，可在「系统配置 → 基础配置」查看开放接口 AK/SK 后自行编码：
 
 ```go
-package main
-    
-import (
-    "encoding/base64"
-    "fmt"
-)
-    
-func main() {
-    ak := "testAk"
-    sk := "testSk"
-    akSk := ak + ":" + sk
-    akSkBase64 := base64.StdEncoding.EncodeToString([]byte(akSk))
-    fmt.Println(akSkBase64)
-}
+akSk := ak + ":" + sk
+clientId := base64.StdEncoding.EncodeToString([]byte(akSk))
 ```
 
-## 消息定义
+具体以当前环境鉴权策略为准。
 
-北向接口暂时定义这些消息，按照需要订阅相关topic接收对应消息，后续会有相关的扩充
+---
 
-| 分类  | topic                                | 消息类型                    | 描述            |
-|-----|--------------------------------------|-------------------------|---------------|
-| 设备操作 | /message/device/online               | DeviceOnlineMessage     | 设备上线          |
-| 设备操作 | /message/device/offline              | DeviceOfflineMessage    | 设备下线          |
-| 设备操作 | /message/device/add                  | DeviceAddMessage        | 设备添加          |
-| 设备操作 | /message/device/delete               | DeviceDeleteMessage     | 设备删除          |
-| 物模型 | /message/tsl/receive/property/report | PropertyReportMessage   | 设备上传属性        |
-| 物模型 | /message/tsl/receive/event/report    | EventReportMessage      | 设备上传事件        |
-| 物模型 | /message/tsl/send/service/call       | ServiceCallMessage      | 平台调用设备服务    |
-| 物模型 | /message/tsl/receive/service/reply   | ServiceCallReplyMessage    | 平台接收到设备服务响应   |
-| 物模型 | /message/tsl/send/property/set       | PropertySetMessage      | 平台设置设备属性      |
-| 物模型 | /message/tsl/receive/property/reply  | PropertySetReplyMessage | 平台接收到设置设备属性响应 |
+## Topic 清单
 
+| 分类 | Topic | data 含义（摘要） |
+|------|-------|-------------------|
+| 设备 | `/message/device/online` | `timestamp`、`desc` |
+| 设备 | `/message/device/offline` | `timestamp`、`desc` |
+| 设备 | `/message/device/add` | 名称、部门、标签、版本、经纬度等 |
+| 设备 | `/message/device/update` | 同添加结构 |
+| 设备 | `/message/device/delete` | `timestamp`、`desc` |
+| 物模型 | `/message/tsl/receive/property/report` | `properties`：属性标识 → 值与时间 |
+| 物模型 | `/message/tsl/receive/event/report` | `eventId`、`events`、`timestamp` |
+| 物模型 | `/message/tsl/send/service/call` | `serviceId`、`params`、`timestamp` |
+| 物模型 | `/message/tsl/receive/service/reply` | `serviceId`、`code`、`data`、`timestamp` |
+| 物模型 | `/message/tsl/send/property/set` | `properties`、`timestamp` |
+| 物模型 | `/message/tsl/receive/property/reply` | `code`、`data`、`timestamp` |
+| 配置 | `/message/tsl/send/config` | 配置下发载荷 |
+| 配置 | `/message/tsl/receive/config/reply` | 配置下发回复 |
+| 配置 | `/message/tsl/receive/config/get` | 设备侧拉取配置通知 |
 
-## 消息格式
+---
 
-所有的消息报文都为json结构体，统一结构如下,其中所有的消息类型都是放在data里面
-1. 对应的go结构体
-```go
-type Message struct {
-    Meta       map[string]string `json:"meta"` //消息元数据，里面的字段暂时为空
-	MessageId  string            `json:"messageId"`// 消息id，`string`类型,消息唯一标识
-    ProductKey string            `json:"productKey"`// 产品`key`，`string`类型
-    DeviceKey  string            `json:"deviceKey"`//设备`key`，`string`类型
-    Data       interface{}       `json:"data"`// 消息体，里面的字段根据不同的消息类型会有不同的结构体
-}
-```
-2. 对应的json报文
+## 统一信封
+
+所有北向 MQTT 消息均为 JSON：
+
 ```json
 {
-  "meta":{},
-  "messageId":"testMessageId",
-  "productKey":"testProductKey",
-  "deviceKey":"testDeviceKey",
-  "data":{}
+  "meta": {},
+  "messageId": "唯一消息 ID",
+  "productKey": "产品标识",
+  "deviceKey": "设备标识",
+  "data": {}
 }
 ```
 
-## 消息类型定义
+`data` 随 Topic 变化；请按 Topic 反序列化，不要假设所有 Topic 的 `data` 字段相同。
 
-### 设备上线
+对接时建议在联调环境抓一条真实报文固化解析逻辑（Go 结构体导出字段名以运行时序列化为准）。
 
-1. 对应的go结构体
-```go
-type DeviceOnlineMessage struct {
-    Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-	Desc string `json:"desc"`//string类型，描述信息
-}
+---
+
+## 订阅建议
+
+| 需求 | 订阅建议 |
+|------|----------|
+| 实时遥测 | `/message/tsl/receive/property/report` |
+| 事件加工 | `/message/tsl/receive/event/report` |
+| 在线状态看板 | `/message/device/online`、`/offline` |
+| 资产变更同步 | `/message/device/add`、`/update`、`/delete` |
+| 关注控制结果 | 对应 `.../send/...` 与 `.../receive/.../reply` |
+
+**多实例消费：** Broker 支持时可使用共享订阅，例如：
+
+```text
+$share/{group}/message/tsl/receive/property/report
 ```
-2. 对应的json报文
+
+**可靠性：** 依赖 Broker QoS 与会话；平台不提供北向消费位点 / 死信队列产品能力。
+
+### 最小订阅样例（mosquitto）
+
+```bash
+mosquitto_sub -h {mqtt_host} -p {port} -u {user} -P {password} \
+  -t '/message/tsl/receive/property/report' -v
+```
+
+---
+
+## 常见 data 样例
+
+以下为 `data` 段示意（外层仍有信封字段）。
+
+### 设备上线 / 下线 / 删除
+
 ```json
 {
-  "timestamp":123456789,
-    "desc":"testDesc"
+  "timestamp": 1710000000000,
+  "desc": "offline"
 }
 ```
 
-### 设备下线
+### 设备添加 / 更新
 
-1. 对应的go结构体
-```go
-type DeviceOfflineMessage struct {
-    timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-	Desc string `json:"desc"`//string类型，描述信息
-}
-```
-2. 对应的json报文
 ```json
 {
-  "timestamp":123456789,
-  "desc": "testDesc"
+  "name": "一号机",
+  "deptId": 1,
+  "desc": "",
+  "version": "1.0.0",
+  "lng": "116.3",
+  "lat": "39.9",
+  "Tags": [{"key": "area", "name": "区域", "value": "A"}],
+  "timestamp": 1710000000000
 }
 ```
 
-### 设备添加
+### 属性上报
 
-1. 对应的go结构体
-```go
-type DeviceAddMessage struct {
-    timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    Desc string `json:"desc"`//string类型，描述信息
-}
-```
-2. 对应的json报文
+字段名以运行时序列化为准；常见为属性值与上报时间。联调时请对照真实报文：
+
 ```json
 {
-  "timestamp":123456789,
-  "desc": "testDesc"
-}
-```
-
-### 设备删除
-
-1. 对应的go结构体
-```go
-type DeviceDeleteMessage struct {
-    timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    Desc string `json:"desc"`//string类型，描述信息
-}
-```
-2. 对应的json报文
-```json
-{
-  "timestamp":123456789,
-  "desc": "testDesc"
-}
-```
-
-### 设备上报属性
-
-1. 对应的go结构体
-```go
-type (
-    PropertyReportMessage struct {
-        Properties map[string]PropertyReportMessageNode `json:"properties"`//map类型，属性列表，key为属性标识，value为属性值
-    }
-	PropertyReportMessageNode struct {
-        Value interface{} `json:"value"`//属性值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-2. 对应的json报文
-```json
-{
-  "properties":{
-    "testPropertyKey":{
-      "value":"testPropertyValue",
-      "timestamp":123456789
+  "properties": {
+    "temperature": {
+      "Value": 25.6,
+      "CreateTime": 1710000000000
     }
   }
 }
 ```
 
-### 设备上报事件
+### 事件上报
 
-1. 对应的go结构体
-```go
-type (
-    EventReportMessage struct {
-		EventId string `json:"eventId"`//string类型，事件标识
-        Events map[string]interface{} `json:"events"`//map类型，事件列表，key为事件标识，value为事件值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-2. 对应的json报文
 ```json
 {
-  "events":{
-    "testEventKey":"testEventValue"
+  "eventId": "alarm",
+  "events": {
+    "level": 1
   },
-  "eventId": "asdasd",
-  "timestamp":123456789
+  "timestamp": 1710000000000
 }
 ```
 
+### 服务调用（平台→设备过程）
 
-### 平台调用设备服务请求
-
-1. 对应的go结构体
-```go
-type (
-    ServiceCallMessage struct {
-        ServiceId string `json:"serviceId"`//string类型，服务标识
-        Params    map[string]interface{} `json:"params"`//map类型，服务参数列表，key为参数标识，value为参数值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-
-2. 对应的json报文
 ```json
 {
-  "serviceId":"testServiceId",
-  "params":{
-    "testParamKey":"testParamValue"
-  },
-  "timestamp":123456789
+  "serviceId": "reboot",
+  "params": {},
+  "timestamp": 1710000000000
 }
 ```
 
-### 平台接收到设备服务响应
+### 服务回复
 
-1. 对应的go结构体
-```go
-type (
-    ServiceCallReplyMessage struct {
-        ServiceId string `json:"serviceId"`//string类型，服务标识
-        Code      int `json:"code"`//int类型，响应码
-        Data      map[string]interface{} `json:"data"`//map类型，响应数据列表，key为数据标识，value为数据值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-2. 对应的json结构体
 ```json
 {
-  "serviceId":"testServiceId",
-  "code":200,
-  "data":{
-    "testDataKey":"testDataValue"
-  },
-  "timestamp":123456789
+  "serviceId": "reboot",
+  "code": 0,
+  "data": {},
+  "timestamp": 1710000000000
 }
 ```
 
-### 平台设置设备属性
+### 属性设置（过程）与回复
 
-1. 对应的go结构体
-```go
-type (
-    PropertySetMessage struct {
-        Properties map[string]interface{} `json:"properties"`//map类型，属性列表，key为属性标识，value为属性值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-2. 对应的json结构体
 ```json
 {
-  "properties":{
-    "testPropertyKey":"testPropertyValue"
+  "properties": {
+    "switch": 1
   },
-  "timestamp":123456789
+  "timestamp": 1710000000000
 }
 ```
 
-### 平台接收到设置设备属性响应
-
-1. 对应的go结构体
-```go
-type (
-    PropertySetReplyMessage struct {
-        Code      int `json:"code"`//int类型，响应码
-        Data      map[string]interface{} `json:"data"`//map类型，响应数据列表，key为数据标识，value为数据值
-        Timestamp int64 `json:"timestamp"`//int64类型，时间戳，单位为毫秒
-    }
-)
-```
-2. 对应的json结构体
 ```json
 {
-  "code":200,
-  "data":{
-    "testDataKey":"testDataValue"
-  },
-  "timestamp":123456789
+  "code": 0,
+  "data": {},
+  "timestamp": 1710000000000
 }
 ```
+
+配置类 Topic 的 `data` 随业务配置内容变化，请以联调抓包为准。
+
+---
+
+## 与 OpenAPI 的配合
+
+- 用 OpenAPI 下发属性设置 / 服务调用后，仍可在北向收到对应 `send` 与 `reply` Topic  
+- 不要用 Webhook 替代本页 Topic 承接遥测流  
+
+调用示例见 [北向接口示例](./example.md)；HTTP 控制面见 [HTTP 接口说明](./http.md)。

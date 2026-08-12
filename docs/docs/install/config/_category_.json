@@ -2,6 +2,7 @@
   "label": "系统配置",
   "position": 5,
   "link": {
-    "type": "generated-index"
+    "type": "generated-index",
+    "description": "对齐当前 config.example.yaml：系统与安全、HTTP、MQTT、时序库、告警、影子等配置说明。"
   }
 }

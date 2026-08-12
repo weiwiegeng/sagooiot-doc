@@ -45,7 +45,7 @@ const FeatureList = [
         Svg: require('@site/static/img/unidata.svg').default,
         description: (
             <>
-                多数据源支持，通过业务数据建模，灵活的整合第三方数据，本地设备数据，针对业务开发进行数据建模。
+                统一接入设备数据、业务库与第三方 API，经清洗与多源建模后计算业务指标，支持分析导出与告警联动。
             </>
         ),
     },

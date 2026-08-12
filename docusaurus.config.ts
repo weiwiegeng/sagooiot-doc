@@ -20,20 +20,9 @@ const config: Config = {
   markdown: {
     mermaid: true,
   },
-  // 多语言配置
   i18n: {
     defaultLocale: 'zh-Hans',
-    locales: ['zh-Hans', 'en'],
-    path: 'i18n',
-    localeConfigs: {
-      en: {
-        label: 'English',
-        direction: 'ltr',
-        htmlLang: 'en-US',
-        calendar: 'gregory',
-        path: 'en',
-      },
-    },
+    locales: ['zh-Hans'],
   },
   // https://www.docusaurus.cn/blog/releases/3.6#docusaurus-faster
   future: {
@@ -213,10 +202,6 @@ const config: Config = {
           label: '问题反馈',
           position: 'right',
         },
-        // {
-        //   type: 'localeDropdown', //多语言选择
-        //   position: 'left',
-        // },
       ],
     },
     // toc目录层级显示设置

@@ -7,11 +7,11 @@ description: '提供SagooIOT平台北向接口的调用示例，包括设备详�
 
 # 使用示例
 
-本平台向北向开发者开放了相关接口，开发者可以通过[接口文档](https://zhgy.sagoo.cn/base-api/swagger)进行相关开发。
+对接选型见 [北向接口概述](./introduce.md)。鉴权见 [AK/SK 认证说明](../authority/start.md)。
 
-接口地址也可以通过”系统监控-> api文档“, 然后再搜索框位置输入`openapi/v1/north`进行查看
+可通过运行环境 Swagger，或「系统监控 → API 文档」搜索 `openapi/v1/product`（推荐）或 `openapi/v1/north`（兼容）查看接口。
 
-本文通过JAVA示例获取设备详情。
+本文以 Java 调用 **获取设备详情**（`/north` 路径）为例；新项目可改为 `/openapi/v1/product/device/detail` 等推荐路径。
 
 ## 前提条件
 

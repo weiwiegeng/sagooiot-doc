@@ -2,40 +2,49 @@
 title: "web服务配置"
 sidebar_position: 2
 hide_title: true
+keywords: [HTTP,server,超时,HTTPS,Swagger,静态文件]
+description: '说明 SagooIoT HTTP 服务端口、读写超时、HTTPS、OpenAPI/Swagger 与静态资源配置。'
 ---
 
-## 配置参考
+# Web 服务配置
 
-在配置文件中找到`server:`根据实际情况修改配置。
+对应 `server:`。
 
 ```yaml
-# http服务配置
 server:
-  serverAgent: "SagooIOT Server"        # 服务端Agent信息。
-  address: ":8199" # WEB服务端口
-  dumpRouterMap: false # 是否打印路由表
-  routeOverWrite: true # 是否允许路由覆盖
-  openapiPath: "/api.json" # OpenAPI路径
-  swaggerPath: "/swagger" # Swagger路径
-  NameToUriType: 3 # 路由转换类型，1:驼峰转下划线，2:下划线转驼峰，3:不转换
-  maxHeaderBytes: "20KB" # 最大请求头大小
-  clientMaxBodySize: "50MB" # 最大请求体大小
-  https: false # 是否启用https
-  httpsCertFile: "" # https证书文件路径
-  httpsKeyFile: "" # https证书key文件路径
-  # 静态服务配置
-  indexFiles: [ "index.html"]   # 自动首页静态文件检索。默认为["index.html", "index.htm"]
-  indexFolder: false            # 当访问静态文件目录时，是否展示目录下的文件列表。默认关闭，那么请求将返回403
-  serverRoot: "resource/public" # 静态文件服务的目录根路径，配置时自动开启静态文件服务。默认关闭
-  searchPaths: [ "/resource/public/"] # 提供静态文件服务时额外的文件搜索路径，当根路径找不到时则按照顺序在搜索目录查找。默认关闭
-  fileServerEnabled: true # 是否开启静态文件服务。默认为false
-  adminPprofPort: "58089" # web-admin pprof端口
-#  allowedDomains: #允许跨域访问的域名列表
-#    - https://example.com
-#    - https://www.example.com
-
+  serverAgent: "SagooIOT Server"
+  address: ":8199"
+  dumpRouterMap: false
+  routeOverWrite: true
+  openapiPath: "/api.json"
+  swaggerPath: "/swagger"
+  NameToUriType: 3                    # 1 驼峰转下划线 2 下划线转驼峰 3 不转换
+  maxHeaderBytes: "20KB"
+  clientMaxBodySize: "50MB"
+  readTimeout: "60s"                  # 读超时
+  writeTimeout: "60s"                 # 写超时
+  idleTimeout: "120s"                 # Keep-Alive 空闲后服务端关闭，减轻 TIME_WAIT
+  https: false
+  httpsCertFile: ""
+  httpsKeyFile: ""
+  indexFiles: [ "index.html" ]
+  indexFolder: false
+  serverRoot: "resource/public"
+  searchPaths: [ "/resource/public/" ]
+  fileServerEnabled: true
+  adminPprofPort: "58089"
+# allowedDomains:
+#   - https://example.com
 ```
 
-## 配置说明
+| 参数 | 说明 |
+|------|------|
+| address | 管理 API 监听，示例 `:8199` |
+| openapiPath / swaggerPath | OpenAPI JSON 与 Swagger UI；前面有网关时路径需与 Nginx 一致 |
+| readTimeout / writeTimeout | 单次读写超时 |
+| idleTimeout | 空闲连接超时，用于回收 Keep-Alive |
+| https* | 进程内 HTTPS；生产更常见是前面 Nginx 终结 TLS |
+| adminPprofPort | 管理端 pprof 端口 |
+| allowedDomains | 允许的跨域来源列表（按需解开注释） |
 
-详细的web服务配置参考，可以参考[goframe WEB服务配置](https://goframe.org/docs/web/server-config-file-template)的配置说明。
+通用 GoFrame 项还可参考 [GoFrame Web 服务配置](https://goframe.org/docs/web/server-config-file-template)。

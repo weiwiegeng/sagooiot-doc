@@ -15,15 +15,15 @@ const FeatureList: FeatureItem[] = [
     title: "统一物模型",
     description: (
         <>
-          通过统一物模型定义设备接入标准，实现设备相关属性、服务、事件等数据的直接获取，同时支持开发者自定义物模型。
+          以物模型统一描述属性、功能、事件与标签；支持自定义与导入导出，并可结合设备影子进行期望值与上报值管理。
         </>
     ),
   },
   {
-    title: "多协议适配",
+    title: "多协议接入",
     description: (
         <>
-          支持多种通信协议(MQTT，MODBUS，TCP,UDP，HTTP,OPC UA,CoAP,SNMP,IEC104,Siements-S7,DL/T 645,CJ/T 188-2004,BACnet/IP)等，支持自定义消息协议，灵活接入不同厂商不同设备。
+          内建 MQTT、TCP、UDP、HTTP、WebSocket、CoAP、LwM2M 等接入；工业侧提供 Modbus、OPC UA、SNMP、IEC104、IEC61850、Siemens S7、DL/T645、CJ/T188、BACnet 等驱动插件，并支持自定义消息协议接入异构设备。
         </>
     ),
   },
@@ -31,7 +31,7 @@ const FeatureList: FeatureItem[] = [
     title: "远程控制",
     description: (
         <>
-          可以实现服务器对设备的精准控制和设备主动向服务器发送请求通知。也可基于属性对设备进行远程控制。
+          支持服务端功能调用（RPC）与属性设置下行；设备也可主动上报请求与事件，完成双向控制闭环。
         </>
     ),
   },
@@ -39,7 +39,7 @@ const FeatureList: FeatureItem[] = [
     title: "场景联动",
     description: (
         <>
-          提供可配置的场景联动功能，支持手动、设备输出、定时等场景类型，支持设备到设备，设备到业务等多种场景。支持多种条件配置，支持串行与并行的联动。
+          支持手动、设备、定时触发；可按条件与防抖编排动作，串行/并行执行设备控制、通知、告警、延时与 Web 调用等联动。
         </>
     ),
   },
@@ -47,7 +47,7 @@ const FeatureList: FeatureItem[] = [
     title: "OTA升级",
     description: (
         <>
-          提供设备固件版本管理，及远程升级能力。支持按产品，模块进行手动升级，也支持自动升级。
+          提供固件模块与版本管理，支持整包/差分包远程升级，可按产品、模块发起升级任务与策略调度。
         </>
     ),
   },
@@ -55,7 +55,7 @@ const FeatureList: FeatureItem[] = [
     title: "远程配置",
     description: (
         <>
-          提供的远程配置功能，可在不用重启设备或中断设备运行的情况下，在线远程更新设备的系统参数、网络参数等配置信息。
+          支持配置模板管理与在线下发，批量更新设备运行参数，减少现场改参与运维中断。
         </>
     ),
   },
@@ -63,21 +63,20 @@ const FeatureList: FeatureItem[] = [
     title: "安全保障",
     description: (
         <>
-          支持MQTT SSL配置、HTTP SSL配置、CoAP DTLS配置；支持访问令牌（Access
-          Tokens）鉴权模式。
+          支持接入侧 TLS/DTLS、AccessToken 鉴权；管理端与 OpenAPI 提供令牌与 AK/SK 认证，并可结合证书与访问控制提升整体安全性。
         </>
     ),
   },
   {
-    title: "实时报警",
+    title: "实时告警",
     description: (
         <>
-          可按产品或是指定设备进行实时检测异常，支持企业微信、短信、语音、Webhook等多种通知方式。
+          可按产品或设备实时检测异常并生成告警；支持企业微信、钉钉、短信、语音、邮件、Webhook 等多通道通知。
         </>
     ),
   },
   {
-    title: "插件系统",
+    title: "插件扩展",
     description: (
         <>
           强大的插件系统，支持跨语言接入，可以通过Golang,C/C++,Python等编写的插件进行功能增强。
@@ -85,24 +84,26 @@ const FeatureList: FeatureItem[] = [
     ),
   },
   {
-    title: "跨平台运行",
+    title: "灵活部署",
     description: (
         <>
-          支持跨平台运行，能运行于各类操作系统，快速实现边缘计算、自动预警，自动执行等功能。
+          支持 Linux / Windows / macOS 多架构部署，核心、接入、告警、规则等可分服务运行，便于按规模裁剪与扩展。
         </>
     ),
   },
   {
     title: "告警治理",
     description: (
-        <>提供高效的告警处理机制，包括告警处理、合并、升级、降级等功能。通过合理配置系统参数，可以实现高效的告警治理，提高运维效率</>
+        <>
+          支持告警处理与标记、合并抑制、升级、限流窗口、持续触发与自动恢复等治理策略，降低告警风暴、提高运维效率。
+        </>
     ),
   },
   {
-    title: "开放的数据接口",
+    title: "开放接口",
     description: (
         <>
-          提供南向、北向开发接口，提供OpenAPIs系统接口，支持多应用接入认证及数据权限处理。
+          南向覆盖设备接入与下行控制，北向提供 OpenAPI（AK/SK）及应用接入；支持开放接口与数据权限控制，便于业务系统集成。
         </>
     ),
   },
